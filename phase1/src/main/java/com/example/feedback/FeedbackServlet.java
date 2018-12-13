@@ -32,7 +32,14 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 public class FeedbackServlet extends HttpServlet {
-  @Override
+  {
+  "success": false,
+  "error-codes": [
+    "missing-input-response",
+    "missing-input-secret"
+  ]
+}
+  private static final String G_RECAPTCHA_RESPONSE = "g-recaptcha-response";
   public void doGet(HttpServletRequest req, HttpServletResponse resp)
           throws IOException, ServletException {
     req.getRequestDispatcher("/feedback.jsp").forward(req, resp);
