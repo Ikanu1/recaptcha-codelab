@@ -32,35 +32,42 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 public class FeedbackServlet extends HttpServlet {
-  @Override
+  {
+  "success": false,
+  "error-codes": [
+    "missing-input-response",
+    "missing-input-secret"
+  ]
+}   
+    private static final String SITE_SECRET = "6LfeHx4UAAAAAFWXGh_xcL0B8vVcXnhn9q_SnQ1b";
+    private static final String SECRET_PARAM = "secret";
+    private static final String RESPONSE_PARAM = "response";
+    private static final String G_RECAPTCHA_RESPONSE = "g-recaptcha-response";
+    private static final String SITE_VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify";
   public void doGet(HttpServletRequest req, HttpServletResponse resp)
           throws IOException, ServletException {
     req.getRequestDispatcher("/feedback.jsp").forward(req, resp);
   }
 
-  @Override
-  public void doPost(HttpServletRequest req, HttpServletResponse resp)
-          throws IOException, ServletException {
-    req.setAttribute("success", true);
-    req.getRequestDispatcher("/feedback.jsp").forward(req, resp);
-  }
+ @Override
+public void doPost(HttpServletRequest req, HttpServletResponse resp)
+       throws IOException, ServletException {
+ JSONObject jsonObject = performRecaptchaSiteVerify(req.getParameter(G_RECAPTCHA_RESPONSE));
+ boolean success = jsonObject.getBoolean("success");
+ req.setAttribute("success", success);
+ System.out.println("Success = " + success);
+ req.getRequestDispatcher("/feedback.jsp").forward(req, resp);
+}
 
-  private JSONObject postAndParseJSON(URL url, String postData) throws IOException {
-    HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-    urlConnection.setDoOutput(true);
-    urlConnection.setRequestMethod("POST");
-    urlConnection.setRequestProperty(
-            "Content-Type", "application/x-www-form-urlencoded");
-    urlConnection.setRequestProperty(
-            "charset", StandardCharsets.UTF_8.displayName());
-    urlConnection.setRequestProperty(
-            "Content-Length", Integer.toString(postData.length()));
-    urlConnection.setUseCaches(false);
-    urlConnection.getOutputStream()
-            .write(postData.getBytes(StandardCharsets.UTF_8));
-    JSONTokener jsonTokener = new JSONTokener(urlConnection.getInputStream());
-    return new JSONObject(jsonTokener);
-  }
+private JSONObject performRecaptchaSiteVerify(String recaptchaResponseToken)
+       throws IOException {
+ URL url = new URL(SITE_VERIFY_URL);
+ StringBuilder postData = new StringBuilder();
+ addParam(postData, SECRET_PARAM, SITE_SECRET);
+ addParam(postData, RESPONSE_PARAM, recaptchaResponseToken);
+
+ return postAndParseJSON(url, postData.toString());
+}
 
   private StringBuilder addParam(
           StringBuilder postData, String param, String value)
